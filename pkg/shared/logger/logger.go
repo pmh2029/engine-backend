@@ -20,8 +20,8 @@ func NewLogger() *logrus.Logger {
 	if os.Getenv("ENV") != "dev" && os.Getenv("ENV") != "local" {
 		log.SetFormatter(&logrus.TextFormatter{
 			TimestampFormat: constants.DateTimeFormat,
-			DisableColors: false,
-			DisableTimestamp: false,
+			DisableColors:   false,
+			FullTimestamp:   true,
 		})
 		log.SetLevel(logrus.InfoLevel)
 	} else {
