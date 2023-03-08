@@ -6,8 +6,6 @@ import (
 )
 
 type AuthUsecase interface {
-	FindByConditions(conditions map[string]interface{}) ([]entities.User, error)
-	TakeByConditions(conditions map[string]interface{}) (entities.User, error)
 	SignUp(req dtos.CreateUserRequest) (entities.User, error)
 	SignIn(req dtos.SignInRequest) (entities.User, string, error)
 	SendMailForgotPassword(req dtos.ForgotPasswordRequest) error

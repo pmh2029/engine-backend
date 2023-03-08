@@ -10,6 +10,7 @@ import (
 
 	"engine/internal/pkg/domains/models/dtos"
 	"engine/internal/pkg/handlers"
+	"engine/pkg/shared/middleware"
 )
 
 // Router is application struct
@@ -34,6 +35,7 @@ func (r *Router) InitializeRouter(logger *logrus.Logger) {
 
 func (r *Router) SetupHandler() {
 	authHandler := handlers.NewAuthHandler(r.DBConn)
+	teamHandler := handlers.NewTeamHandler(r.DBConn)
 
 	// ping
 	r.Engine.GET("/ping", func(c *gin.Context) {
@@ -59,6 +61,15 @@ func (r *Router) SetupHandler() {
 			authAPI.GET("/reset_password/:email/:token", authHandler.VerifyResetPasswordLink)
 			authAPI.PATCH("/reset_password/:email/:token", authHandler.PatchResetPassword)
 			authAPI.GET("/verify_email/:email/:token", authHandler.VerifyEmailAddress)
+		}
+	}
+
+	privateApi := r.Engine.Group("/api")
+	privateApi.Use(middleware.CheckAuthentication())
+	{
+		teamAPI := privateApi.Group("/teams")
+		{
+			teamAPI.POST("", teamHandler.CreateTeam)
 		}
 	}
 }

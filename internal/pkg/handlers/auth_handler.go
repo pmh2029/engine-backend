@@ -24,13 +24,16 @@ import (
 )
 
 type AuthHandler struct {
+	UserUsecase interfaces.UserUsecase
 	AuthUsecase interfaces.AuthUsecase
 }
 
 func NewAuthHandler(dbConn *gorm.DB) *AuthHandler {
-	authRepo := repositories.NewUserRepository(dbConn)
-	authUsecase := usecases.NewAuthUsecase(authRepo)
+	userRepo := repositories.NewUserRepository(dbConn)
+	userUsecase := usecases.NewUserUsecase(userRepo)
+	authUsecase := usecases.NewAuthUsecase(userRepo)
 	return &AuthHandler{
+		UserUsecase: userUsecase,
 		AuthUsecase: authUsecase,
 	}
 }
@@ -195,7 +198,7 @@ func (ah *AuthHandler) Redirect(c *gin.Context) {
 		return
 	}
 
-	user, err := ah.AuthUsecase.TakeByConditions(map[string]interface{}{
+	user, err := ah.UserUsecase.TakeUserByConditions(map[string]interface{}{
 		"email": config.GoogleUser.Email,
 	})
 
@@ -414,7 +417,7 @@ func (ah *AuthHandler) VerifyParam(c *gin.Context) (entities.User, bool) {
 		return entities.User{}, false
 	}
 
-	user, err := ah.AuthUsecase.TakeByConditions(map[string]interface{}{
+	user, err := ah.UserUsecase.TakeUserByConditions(map[string]interface{}{
 		"email": decodedToken.Claims.(jwt.MapClaims)["email"],
 	})
 	if err != nil {

@@ -23,18 +23,6 @@ func NewAuthUsecase(ur interfaces.UserRepository) interfaces.AuthUsecase {
 	}
 }
 
-func (au *AuthUsecase) FindByConditions(conditions map[string]interface{}) ([]entities.User, error) {
-	users, err := au.UserRepo.FindByConditions(conditions)
-
-	return users, err
-}
-
-func (au *AuthUsecase) TakeByConditions(conditions map[string]interface{}) (entities.User, error) {
-	user, err := au.UserRepo.TakeByConditions(conditions)
-
-	return user, err
-}
-
 func (au *AuthUsecase) SignUp(req dtos.CreateUserRequest) (entities.User, error) {
 	user := entities.User{
 		Username: req.Username,
@@ -68,7 +56,7 @@ func (au *AuthUsecase) SignUp(req dtos.CreateUserRequest) (entities.User, error)
 		Path:    "pkg/shared/template/verify_email_template.html",
 		To:      req.Email,
 		Subject: "Confirm your email address",
-		Url:     os.Getenv("BASE_URL") + "auth/verify-email/" + encodedEmail + "/" + token,
+		Url:     os.Getenv("BASE_URL") + "auth/verify_email/" + encodedEmail + "/" + token,
 	}
 
 	err = utils.SendTemplateEMail(templateData)
@@ -80,7 +68,7 @@ func (au *AuthUsecase) SignUp(req dtos.CreateUserRequest) (entities.User, error)
 }
 
 func (au *AuthUsecase) SignIn(req dtos.SignInRequest) (entities.User, string, error) {
-	user, err := au.UserRepo.TakeByConditions(map[string]interface{}{
+	user, err := au.UserRepo.TakeUserByConditions(map[string]interface{}{
 		"email": req.Email,
 	})
 	if err != nil {
@@ -105,7 +93,7 @@ func (au *AuthUsecase) SignIn(req dtos.SignInRequest) (entities.User, string, er
 }
 
 func (au *AuthUsecase) SendMailForgotPassword(req dtos.ForgotPasswordRequest) error {
-	user, err := au.UserRepo.TakeByConditions(map[string]interface{}{
+	user, err := au.UserRepo.TakeUserByConditions(map[string]interface{}{
 		"email": req.Email,
 	})
 	if err != nil {
@@ -130,7 +118,7 @@ func (au *AuthUsecase) SendMailForgotPassword(req dtos.ForgotPasswordRequest) er
 		Path:    "pkg/shared/template/forgot_password_template.html",
 		To:      req.Email,
 		Subject: "Forgot Password",
-		Url:     os.Getenv("BASE_URL") + "auth/reset-password/" + encodedEmail + "/" + token,
+		Url:     os.Getenv("BASE_URL") + "auth/reset_password/" + encodedEmail + "/" + token,
 	}
 
 	err = utils.SendTemplateEMail(templateData)
@@ -139,7 +127,7 @@ func (au *AuthUsecase) SendMailForgotPassword(req dtos.ForgotPasswordRequest) er
 }
 
 func (au *AuthUsecase) ActiveUser(userID uint) error {
-	user, err := au.UserRepo.TakeByConditions(map[string]interface{}{
+	user, err := au.UserRepo.TakeUserByConditions(map[string]interface{}{
 		"id": userID,
 	})
 	if err != nil {
@@ -157,7 +145,7 @@ func (au *AuthUsecase) ActiveUser(userID uint) error {
 }
 
 func (au *AuthUsecase) ResetPassword(userID uint, req dtos.ResetPasswordRequest) error {
-	user, err := au.UserRepo.TakeByConditions(map[string]interface{}{
+	user, err := au.UserRepo.TakeUserByConditions(map[string]interface{}{
 		"id": userID,
 	})
 	if err != nil {

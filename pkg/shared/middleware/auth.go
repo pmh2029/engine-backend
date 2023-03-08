@@ -1,12 +1,14 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 
-	jwt "engine/pkg/shared/auth"
+	"engine/pkg/shared/auth"
 )
 
 func CheckAuthentication() gin.HandlerFunc {
@@ -25,7 +27,7 @@ func CheckAuthentication() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		if !jwt.VerifyJWT(tokenReq) {
+		if !auth.VerifyJWT(tokenReq) {
 			c.JSON(http.StatusUnauthorized,
 				gin.H{"Message": "Token is invalid"})
 			c.Abort()
@@ -34,4 +36,25 @@ func CheckAuthentication() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func GetUserInfoFromToken(c *gin.Context) (string, error) {
+	authorization := c.Request.Header.Get("Authorization")
+	if authorization == "" {
+		return "", errors.New("unauthorized")
+	}
+
+	token := strings.Replace(authorization, "Bearer ", "", -1)
+	if !auth.VerifyJWT(token) {
+		return "", errors.New("token is not valid")
+	}
+
+	decodedToken, err := auth.DecodeJWT(token)
+	if err != nil {
+		return "", errors.New("error while decoding token")
+	}
+
+	email := decodedToken.Claims.(jwt.MapClaims)["email"].(string)
+
+	return email, nil
 }

@@ -14,3 +14,11 @@ func ConvertUserEntityToUserResponse(user entities.User) dtos.UserResponse {
 		IsActive: user.IsActive,
 	}
 }
+
+func ConvertTeamEntityToTeamResponse(team entities.Team) dtos.TeamResponse {
+	return dtos.TeamResponse{
+		ID:         team.ID,
+		TeamName:   team.TeamName,
+		TeamAvatar: team.TeamAvatar,
+	}
+}

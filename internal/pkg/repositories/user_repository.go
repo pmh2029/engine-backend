@@ -23,14 +23,14 @@ func (ur *UserRepository) CreateUser(user entities.User) (entities.User, error) 
 	return user, result.Error
 }
 
-func (ur *UserRepository) FindByConditions(conditions map[string]interface{}) ([]entities.User, error) {
+func (ur *UserRepository) FindUserByConditions(conditions map[string]interface{}) ([]entities.User, error) {
 	users := []entities.User{}
 
 	result := ur.DBConn.Where(conditions).Find(&users)
 	return users, result.Error
 }
 
-func (ur *UserRepository) TakeByConditions(conditions map[string]interface{}) (entities.User, error) {
+func (ur *UserRepository) TakeUserByConditions(conditions map[string]interface{}) (entities.User, error) {
 	user := entities.User{}
 	result := ur.DBConn.Where(conditions).Take(&user)
 
