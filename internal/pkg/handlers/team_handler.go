@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -83,6 +85,164 @@ func (th *TeamHandler) CreateTeam(c *gin.Context) {
 		Status: "success",
 		Data: gin.H{
 			"team_info": utils.ConvertTeamEntityToTeamResponse(team),
+		},
+	})
+}
+
+func (th *TeamHandler) GetTeamMemberList(c *gin.Context) {
+	teamID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dtos.BaseResponse{
+			Status: "failed",
+			Error: &dtos.ErrorResponse{
+				ErrorMessage: err.Error(),
+			},
+		})
+		return
+	}
+
+	team, err := th.TeamUsecase.TakeTeamByConditions(map[string]interface{}{
+		"id": teamID,
+	})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dtos.BaseResponse{
+				Status: "failed",
+				Error: &dtos.ErrorResponse{
+					ErrorMessage: err.Error(),
+				},
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dtos.BaseResponse{
+			Status: "failed",
+			Error: &dtos.ErrorResponse{
+				ErrorMessage: err.Error(),
+			},
+		})
+		return
+	}
+
+	teamMembers, err := th.TeamUsecase.GetTeamMemberList(team)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.BaseResponse{
+			Status: "failed",
+			Error: &dtos.ErrorResponse{
+				ErrorMessage: err.Error(),
+			},
+		})
+		return
+	}
+
+	teamMembersRes := []dtos.UserResponse{}
+	for _, member := range teamMembers {
+		teamMembersRes = append(teamMembersRes, utils.ConvertUserEntityToUserResponse(member))
+	}
+
+	c.JSON(http.StatusOK, dtos.BaseResponse{
+		Status: "success",
+		Data: gin.H{
+			"total":        len(teamMembersRes),
+			"list_members": teamMembersRes,
+		},
+	})
+}
+
+func (th *TeamHandler) AddTeamMember(c *gin.Context) {
+	teamID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dtos.BaseResponse{
+			Status: "failed",
+			Error: &dtos.ErrorResponse{
+				ErrorMessage: err.Error(),
+			},
+		})
+		return
+	}
+
+	req := dtos.AddUserToTeamRequest{}
+	err = c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dtos.BaseResponse{
+			Status: "failed",
+			Error: &dtos.ErrorResponse{
+				ErrorMessage: err.Error(),
+			},
+		})
+		return
+	}
+
+	team, err := th.TeamUsecase.TakeTeamByConditions(map[string]interface{}{
+		"id": teamID,
+	})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dtos.BaseResponse{
+				Status: "failed",
+				Error: &dtos.ErrorResponse{
+					ErrorMessage: err.Error(),
+				},
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dtos.BaseResponse{
+			Status: "failed",
+			Error: &dtos.ErrorResponse{
+				ErrorMessage: err.Error(),
+			},
+		})
+		return
+	}
+
+	user, err := th.UserUsecase.TakeUserByConditions(map[string]interface{}{
+		"email": req.Email,
+	})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dtos.BaseResponse{
+				Status: "failed",
+				Error: &dtos.ErrorResponse{
+					ErrorMessage: err.Error(),
+				},
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dtos.BaseResponse{
+			Status: "failed",
+			Error: &dtos.ErrorResponse{
+				ErrorMessage: err.Error(),
+			},
+		})
+		return
+	}
+	if !user.IsActive {
+		c.JSON(http.StatusBadRequest, dtos.BaseResponse{
+			Status: "failed",
+			Error: &dtos.ErrorResponse{
+				ErrorMessage: "user is not active",
+			},
+		})
+		return
+	}
+
+	_, err = th.TeamUsecase.AddUserToTeam(user, team)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.BaseResponse{
+			Status: "failed",
+			Error: &dtos.ErrorResponse{
+				ErrorMessage: err.Error(),
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dtos.BaseResponse{
+		Status: "success",
+		Data: gin.H{
+			"message": "success",
 		},
 	})
 }

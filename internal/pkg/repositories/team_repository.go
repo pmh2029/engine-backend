@@ -29,3 +29,9 @@ func (tr *TeamRepository) TakeTeamByConditions(conditions map[string]interface{}
 
 	return team, result.Error
 }
+
+func (tr *TeamRepository) GetTeamMemberList(team entities.Team) ([]entities.User, error) {
+	result := tr.DBConn.Preload("Users").Where("id = ?", team.ID).Find(&team)
+
+	return team.Users, result.Error
+}

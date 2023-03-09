@@ -40,3 +40,21 @@ func (tu *TeamUsecase) CreateTeam(req dtos.CreateTeamRequest, user entities.User
 
 	return team, err
 }
+
+func (tu *TeamUsecase) GetTeamMemberList(team entities.Team) ([]entities.User, error) {
+	users, err := tu.TeamRepo.GetTeamMemberList(team)
+
+	return users, err
+}
+
+func (tu *TeamUsecase) TakeTeamByConditions(conditions map[string]interface{}) (entities.Team, error) {
+	team, err := tu.TeamRepo.TakeTeamByConditions(conditions)
+
+	return team, err
+}
+
+func (tu *TeamUsecase) AddUserToTeam(user entities.User, team entities.Team) (entities.TeamUser, error) {
+	teamUser, err := tu.TeamUserRepo.AddUserToTeam(team, user)
+
+	return teamUser, err
+}

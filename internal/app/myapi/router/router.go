@@ -70,6 +70,8 @@ func (r *Router) SetupHandler() {
 		teamAPI := privateApi.Group("/teams")
 		{
 			teamAPI.POST("", teamHandler.CreateTeam)
+			teamAPI.GET("/:id/team_members", teamHandler.GetTeamMemberList)
+			teamAPI.POST("/:id/team_members", teamHandler.AddTeamMember)
 		}
 	}
 }
