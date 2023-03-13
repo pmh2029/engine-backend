@@ -5,8 +5,8 @@ var TeamUsersTableName = "team_users"
 
 type TeamUser struct {
 	BaseEntity
-	TeamID uint `gorm:"primaryKey"`
-	UserID uint `gorm:"primaryKey"`
+	TeamID uint 
+	UserID uint 
 }
 
 // TableName func
